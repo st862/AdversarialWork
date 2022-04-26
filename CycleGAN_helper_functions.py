@@ -87,8 +87,7 @@ def Train_AE(Encoder,Decoder,dataloader,dataloader_test,device,lr=1e-2):
                 return Encoder,Decoder
     return Encoder,Decoder
 
-def Final_loss (Encoder_A,Decoder_A,Encoder_B,Decoder_B,dataloader_A,dataloader_B,shift_A2B):
-
+def Final_loss(Encoder_A,Decoder_A,Encoder_B,Decoder_B,dataloader_A,dataloader_B,shift_A2B):
     for (X_A,X_B) in zip(dataloader_A,dataloader_B):
         a_real=X_A
         b_real=X_B
@@ -186,3 +185,4 @@ def Plots(ENCODER_A,DECODER_A,ENCODER_B,DECODER_B,dataloader_A,dataloader_B,shif
     plt.title("X* - D_y(E_x(Y)) for Y in Machine B")
     sns.boxplot(data = B_rec_error)
     plt.show()
+    
