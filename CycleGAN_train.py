@@ -63,7 +63,10 @@ def main():
 
     for epoch in range(0,epochs):
         if epoch % 10 == 0:
-            print(f"Epoch: {epoch}, lr: {optimizer_G.param_groups[0]['lr'],optimizer_D_A.param_groups[0]['lr'],optimizer_D_B.param_groups[0]['lr']}")
+            lr = optimizer_G.param_groups[0]['lr']
+            print(f"Epoch: {epoch}, lr: {lr}")
+            if  lr < 1e-7:
+                break
         if epoch % D_freq == 0:
             Epoch_D(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_D_A,optimizer_D_B,Test.dataloader_train_A,Test.dataloader_train_B,device)
         if epoch % G_freq == 0:
