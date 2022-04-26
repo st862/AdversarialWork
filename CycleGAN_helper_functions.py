@@ -1,6 +1,9 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import matplotlib.pyplot as plt
+import random 
+import seaborn as sns
 
 def LOSS_D(real,fake):
     return torch.mean((real-1)**2) + torch.mean(fake**2)
@@ -50,7 +53,7 @@ def Epoch_G(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimize
         Loss.backward()
         optimizer_G.step()
     print(f"Losses - AE: {AE_loss_A:.3f}/{AE_loss_B:.3f} fool: {fool_loss_A:.3f}/{fool_loss_B:.3f}")
-    
+
 
 def Save_Models(enc,dec,path_e,path_d):
     torch.save(enc.state_dict(), path_e)
@@ -84,3 +87,102 @@ def Train_AE(Encoder,Decoder,dataloader,dataloader_test,device,lr=1e-2):
                 return Encoder,Decoder
     return Encoder,Decoder
 
+def Final_loss (Encoder_A,Decoder_A,Encoder_B,Decoder_B,dataloader_A,dataloader_B,shift_A2B):
+
+    for (X_A,X_B) in zip(dataloader_A,dataloader_B):
+        a_real=X_A
+        b_real=X_B
+        a_reconstructed=Decoder_A(Encoder_A(a_real))
+        b_reconstructed=Decoder_B(Encoder_B(b_real))
+        b2a = Decoder_A(Encoder_B(b_real))
+        a2b = Decoder_B(Encoder_A(a_real))
+        a2b_man = a_real + torch.tensor(shift_A2B)
+        b2a_man = b_real - torch.tensor(shift_A2B)
+        AE_loss_A = nn.L1Loss()(a_real,a_reconstructed)
+        AE_loss_B = nn.L1Loss()(b_real,b_reconstructed)                    
+        a2b_loss_A = nn.L1Loss()(a2b,a2b_man)
+        a2b_loss_B = nn.L1Loss()(b2a,b2a_man)
+        break
+    print(f"Reconstruction Loss: {AE_loss_A,AE_loss_B}, A2B Loss: {a2b_loss_A,a2b_loss_B}")
+
+def Plots(ENCODER_A,DECODER_A,ENCODER_B,DECODER_B,dataloader_A,dataloader_B,shift_A2B):
+    with torch.no_grad():
+        for X_A in dataloader_A:
+            Z_A=ENCODER_A(X_A)
+            X_A_rec=DECODER_A(ENCODER_A(X_A))
+            X_A2B = DECODER_B(ENCODER_A(X_A))
+            X_A2B_manually = X_A + torch.tensor(shift_A2B)
+            X_A2B_man_encoded = ENCODER_B(X_A2B_manually)
+        for X_B in dataloader_B:
+            Z_B=ENCODER_B(X_B)
+            X_B_rec=DECODER_B(ENCODER_B(X_B))
+            X_B2A=DECODER_A(ENCODER_B(X_B))
+            X_B2A_manually = X_B - torch.tensor(shift_A2B)
+            X_B2A_man_encoded = ENCODER_A(X_B2A_manually)
+    print("Reconstructions")
+
+    i = random.randint(1,len(X_A))
+    plt.plot(X_A[i],label="X")
+    plt.plot(X_A_rec[i],label="D_x(E_x(X))",linestyle = ":")
+    plt.title("One Example of X vs D_x(E_x(X)).")
+    plt.legend()
+    plt.show()
+
+    i = random.randint(1,len(X_B))
+    plt.plot(X_B[i],label="Y")
+    plt.plot(X_B_rec[i],label="D_y(E_y(Y))",linestyle = ":")
+    plt.title("One Example of Y vs D_y(E_y(Y)).")
+    plt.legend()
+    plt.show()
+
+    A_rec_error = X_A - X_A_rec
+    sns.boxplot(data = A_rec_error)
+    plt.title("X - D_x(E_x(X)) For X in Machine A")
+    plt.show()
+
+    B_rec_error = X_B - X_B_rec
+    sns.boxplot(data = B_rec_error)
+    plt.title("Y - D_y(E_y(Y)) For Y in Machine B")
+    plt.show()
+
+    print("Latent")
+
+    A_latent_error = Z_A - X_A2B_man_encoded
+    plt.ylim(-1,1 )
+    plt.title("E_x(X) - E_y(Y*) For X in Machine A")
+    sns.boxplot(data = A_latent_error)
+    plt.show()
+
+    B_latent_error = Z_B- X_B2A_man_encoded
+    plt.ylim(-1,1 )
+    plt.title("E_y(Y) - E_x(X*) For Y in Machine A")
+    sns.boxplot(data = B_latent_error)
+    plt.show()
+
+    print("X2Y")
+
+    i = random.randint(1,len(X_A))
+    plt.plot(X_A[i],label="A",alpha=0.5)
+    plt.plot(X_A2B_manually[i],label="A2B_manually",alpha=0.5)
+    plt.plot(X_A2B[i],label="A2B_model",alpha=0.5)
+    plt.legend()
+    plt.title("X vs Y* vs D_y(E_x(X)) for X in Machine A")
+    plt.show()
+
+    i = random.randint(1,len(X_B))
+    plt.plot(X_B[i],label="B",alpha=0.5)
+    plt.plot(X_B2A_manually[i],label="B2A_manually",alpha=0.5)
+    plt.plot(X_B2A[i],label="B2A",alpha=0.5)
+    plt.title("Y vs X* vs D_x(E_y(Y)) for Y in Machine B")
+    plt.legend()
+    plt.show()
+
+    A2B_error = X_A2B - X_A2B_manually
+    plt.title("Y* - D_y(E_x(X)) for X in Machine A")    
+    sns.boxplot(data = A2B_error)
+    plt.show()
+
+    B_rec_error = X_B2A - X_B2A_manually
+    plt.title("X* - D_y(E_x(Y)) for Y in Machine B")
+    sns.boxplot(data = B_rec_error)
+    plt.show()

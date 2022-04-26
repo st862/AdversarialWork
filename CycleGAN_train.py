@@ -20,7 +20,8 @@ def main():
         C_ae, C_cyc, C_disc = [1,1,1]
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
+    print(f"Using device: {device}")
+
     Test = CycleGAN_datasets.dictionary()[test_id]
 
     encoder_shape = Test.encoder_shape
