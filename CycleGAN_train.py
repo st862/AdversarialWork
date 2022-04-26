@@ -56,12 +56,16 @@ def main():
                                         lr=1e-4)
     optimizer_D_A =optim.Adam(Discrim_A.parameters(),lr=1e-4)
     optimizer_D_B =optim.Adam(Discrim_B.parameters(),lr=1e-4)
+    
+    scheduler_G = optim.lr_scheduler.ReduceLROnPlateau(optimizer_G)
+    scheduler_D_A = optim.lr_scheduler.ReduceLROnPlateau(optimizer_D_A)
+    scheduler_D_B = optim.lr_scheduler.ReduceLROnPlateau(optimizer_D_B)
 
     for epoch in range(0,epochs):
         if epoch % D_freq == 0:
-            Epoch_D(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_D_A,optimizer_D_B,Test.dataloader_train_A,Test.dataloader_train_B,device)
+            Epoch_D(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_D_A,optimizer_D_B,scheduler_D_A,scheduler_D_B,Test.dataloader_train_A,Test.dataloader_train_B,device)
         if epoch % G_freq == 0:
-            Epoch_G(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_G,Test.dataloader_train_A,Test.dataloader_train_B,device,C_ae,C_cyc,C_disc)
+            Epoch_G(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_G,scheduler_G,Test.dataloader_train_A,Test.dataloader_train_B,device,C_ae,C_cyc,C_disc)
         
     Save_Models(Encoder_A,Decoder_A,path+"_Enc_A",path+"_Dec_A")
     Save_Models(Encoder_B,Decoder_B,path+"_Enc_B",path+"_Dec_B")
