@@ -12,7 +12,7 @@ def LOSS_D(real,fake):
 def LOSS_G(fake):
     return torch.mean((fake-1)**2)
 
-def Epoch_D(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_D_A,optimizer_D_B,scheduler_D_A,scheduler_D_B,dataloader_A,dataloader_B,device):
+def Epoch_D(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_D_A,optimizer_D_B,dataloader_A,dataloader_B,device):
     for (X_A,X_B) in zip(dataloader_A,dataloader_B):
         with torch.no_grad():
             a_real = X_A.to(device)
@@ -24,16 +24,15 @@ def Epoch_D(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimize
         Disc_loss_A = LOSS_D (Discrim_A(a_real),Discrim_A(b2a))
         Disc_loss_A.backward()
         optimizer_D_A.step()
-        scheduler_D_A.step(Disc_loss_A)
 
         optimizer_D_B.zero_grad()
         Disc_loss_B = LOSS_D (Discrim_B(b_real),Discrim_B(a2b.detach()))
         Disc_loss_B.backward()
         optimizer_D_B.step()
-        scheduler_D_B.step(Disc_loss_B)
-
-def Epoch_G(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_G,scheduler_G,dataloader_A,dataloader_B,device,C_ae,C_cyc,C_disc):
+        
+def Epoch_G(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimizer_G,dataloader_A,dataloader_B,device,C_ae,C_cyc,C_disc):
     for (X_A,X_B) in zip(dataloader_A,dataloader_B):
+        
         a_real = X_A.to(device)
         b_real = X_B.to(device)
         a_reconstructed=Decoder_A(Encoder_A(a_real))
@@ -55,10 +54,9 @@ def Epoch_G(Encoder_A,Decoder_A,Encoder_B,Decoder_B,Discrim_A,Discrim_B,optimize
             C_disc * fool_loss_A + C_disc * fool_loss_B
         Loss.backward()
         optimizer_G.step()
-        scheduler_G.step(Loss)
 
-    print(f"Losses - AE: {AE_loss_A:.3f}/{AE_loss_B:.3f} fool: {fool_loss_A:.3f}/{fool_loss_B:.3f}")
-
+    print(f"Losses - AE: {AE_loss_A:.5f}/{AE_loss_B:.5f} fool: {fool_loss_A:.5f}/{fool_loss_B:.5f}")
+    return Loss
 
 def Save_Models(enc,dec,path_e,path_d):
     torch.save(enc.state_dict(), path_e)
