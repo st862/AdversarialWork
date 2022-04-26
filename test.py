@@ -1,6 +1,8 @@
 import torch
 import Models
 import CycleGAN_helper_functions
+import CycleGAN_datasets
+import matplotlib.pyplot as plt
 
 def Test_Models():
     print("\nTesting Models.py")
@@ -28,5 +30,17 @@ def Test_CycleGAN_helper_functions():
     print(f"Loss_D: {CycleGAN_helper_functions.LOSS_D(x_rand,x_rand)}, Loss_G: {CycleGAN_helper_functions.LOSS_G(x_rand)}")
     print("Assuming the input is [0-1], minimising loss_G: fake -> 1, minimising loss_D: fake -> 0 and real -> 1 ")
 
+def Test_CycleGAN_datasets():
+    print("\nTesting CycleGAN_datasets.py")
+    print("\nTest1")
+    Test = CycleGAN_datasets.Test1()
+    for i in Test.data_A.columns:
+        plt.subplot(2,4,i+1)
+        plt.hist(Test.data_A[i],alpha=0.5,bins=50,density=True)
+        plt.hist(Test.data_B[i],alpha=0.5,bins=50,density=True)
+    plt.show()
+
 Test_Models()
 Test_CycleGAN_helper_functions()
+Test_CycleGAN_datasets()
+

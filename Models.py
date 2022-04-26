@@ -1,5 +1,3 @@
-from turtle import forward
-from typing import final
 from numpy import size
 import torch
 import torch.nn as nn
