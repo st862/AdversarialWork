@@ -4,20 +4,15 @@ import torch.optim as optim
 from CycleGAN_helper_functions import Epoch_D, Epoch_G, Save_Models, Load_Models, Train_AE
 from Models import Linear
 
-def main():
+def main(test_id="test1",epochs=10000, D_freq=1, G_freq=1,C_ae=1, C_cyc=1, C_disc=1):
 
     user_input = False
-
+    
     if user_input:
         test_id = input ("Enter Test ID: ")
         assert test_id in CycleGAN_datasets.list(), "Test ID not recognised"
         epochs, D_freq, G_freq = [ int(x) for x in input("Enter integers Epochs, D_Frequency, G_Frequency: ").split() ]
         C_ae, C_cyc, C_disc = [ float(x) for x in input ("Enter Loss Function Constants (AE, Cycle, Discriminator) : ").split() ]
-    else:
-        test_id = "test1"
-        assert test_id in CycleGAN_datasets.list(), "Test ID not recognised"
-        epochs, D_freq, G_freq = [1000, 1, 1]
-        C_ae, C_cyc, C_disc = [1,1,1]
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
@@ -57,9 +52,9 @@ def main():
     optimizer_D_A =optim.Adam(Discrim_A.parameters(),lr=1e-4)
     optimizer_D_B =optim.Adam(Discrim_B.parameters(),lr=1e-4)
     
-    scheduler_G = optim.lr_scheduler.ReduceLROnPlateau(optimizer_G)
-    scheduler_D_A = optim.lr_scheduler.ReduceLROnPlateau(optimizer_D_A)
-    scheduler_D_B = optim.lr_scheduler.ReduceLROnPlateau(optimizer_D_B)
+    scheduler_G = optim.lr_scheduler.ReduceLROnPlateau(optimizer_G,patience=100)
+    scheduler_D_A = optim.lr_scheduler.ReduceLROnPlateau(optimizer_D_A,patience=100)
+    scheduler_D_B = optim.lr_scheduler.ReduceLROnPlateau(optimizer_D_B,patience=100)
 
     for epoch in range(0,epochs):
         if epoch % 10 == 0:
@@ -74,8 +69,6 @@ def main():
         scheduler_G.step(Loss)
         scheduler_D_A.step(Loss)
         scheduler_D_B.step(Loss)
-
+       
     Save_Models(Encoder_A,Decoder_A,path+"_Enc_A",path+"_Dec_A")
     Save_Models(Encoder_B,Decoder_B,path+"_Enc_B",path+"_Dec_B")
-
-main()

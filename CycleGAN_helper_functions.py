@@ -104,8 +104,17 @@ def Final_loss(Encoder_A,Decoder_A,Encoder_B,Decoder_B,dataloader_A,dataloader_B
         AE_loss_B = nn.L1Loss()(b_real,b_reconstructed)                    
         a2b_loss_A = nn.L1Loss()(a2b,a2b_man)
         a2b_loss_B = nn.L1Loss()(b2a,b2a_man)
+        a_encoded = Encoder_A(a_real)
+        a2b_encoded = Encoder_B(a2b_man)
+        b_encoded = Encoder_B(b_real)
+        b2a_encoded = Encoder_A(b2a_man)
+        latent_loss_A = nn.L1Loss()(a_encoded,a2b_encoded)
+        latent_loss_B = nn.L1Loss()(b_encoded,b2a_encoded)       
         break
-    print(f"Reconstruction Loss: {AE_loss_A,AE_loss_B}, A2B Loss: {a2b_loss_A,a2b_loss_B}")
+    print(f"Reconstruction Loss: {AE_loss_A.item():.5f}, {AE_loss_B.item():.5f}")
+    print(f"A2B Loss: {a2b_loss_A.item():.5f}, {a2b_loss_B.item():.5f}")
+    print(f"Latent Loss: {latent_loss_A.item():.5f}, {latent_loss_B.item():.5f}\n")
+    return AE_loss_A.item(),AE_loss_B.item(),a2b_loss_A.item(),a2b_loss_B.item(),latent_loss_A.item(),latent_loss_B.item(),AE_loss_A.item()+AE_loss_B.item()+a2b_loss_A.item()+a2b_loss_B.item()+latent_loss_A.item()+latent_loss_B.item()
 
 def Plots(ENCODER_A,DECODER_A,ENCODER_B,DECODER_B,dataloader_A,dataloader_B,shift_A2B):
     with torch.no_grad():

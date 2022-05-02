@@ -3,12 +3,20 @@ import pandas as pd
 import torch
 
 def list():
-    return ["test1","time1"]
+    return ["test1","test1_smaller","test1_larger","test1_larger_latent","test2","test2_smaller","test2_larger","test2_larger_latent","time1"]
 
 def dictionary():
     return {"test1":Test1(),
+            "test1_smaller":Test1_smaller(),
+            "test1_larger":Test1_larger(),
+            "test1_larger_latent":Test1_larger_latent(),
+            "test2":Test2(),
+            "test2_smaller":Test2_smaller(),
+            "test2_larger":Test2_larger(),
+            "test2_larger_latent":Test2_larger_latent(),
             "time1":Test_shift_over_time_1()}
 
+#---------------------------------------------------------
 class Test1():
     def __init__(self):
 
@@ -27,12 +35,75 @@ class Test1():
         self.dataloader_train_A,self.dataloader_test_A = Create_Dataloader(self.data_A)
         self.dataloader_train_B,self.dataloader_test_B = Create_Dataloader(self.data_B)
 
+class Test1_smaller(Test1):
+    def __init__(self):
+        super().__init__()
+        self.path = "SavedModels/test1_smaller"
+        self.encoder_shape = [8,8,8]
+        self.decoder_shape = [8,8,8]
+    
+class Test1_larger(Test1):
+    def __init__(self):
+        super().__init__()
+        self.path = "SavedModels/test1_larger"
+        self.encoder_shape = [8,16,32,32,16,8]
+        self.decoder_shape = [8,16,32,32,16,8]
+        
+class Test1_larger_latent(Test1):
+    def __init__(self):
+        super().__init__()
+        self.path = "SavedModels/test1_larger_latent"
+        self.encoder_shape = [8,16,16,16]
+        self.decoder_shape = [16,16,16,8]
+#----------------------------------------------------------
+class Test2():
+    def __init__(self):
+
+        self.path = "SavedModels/test2"
+        self.encoder_shape = [8,16,16,8]
+        self.decoder_shape = [8,16,16,8]
+        
+        self.shift = [0.2,0.4,0.6,-0.6,-0.4,-0.2,0,0]
+
+        data=np.random.normal(0,1,(100000,8))
+        data_raw=pd.DataFrame(data)
+        self.data_A=data_raw[ ::2] - [x/2 for x in self.shift]
+        self.data_B=data_raw[1::2] + [x/2 for x in self.shift]
+
+        self.dataloader_train_all,self.dataloader_test_all = Create_Dataloader(pd.concat([self.data_A,self.data_B]))
+        self.dataloader_train_A,self.dataloader_test_A = Create_Dataloader(self.data_A)
+        self.dataloader_train_B,self.dataloader_test_B = Create_Dataloader(self.data_B)
+
+class Test2_smaller(Test2):
+    def __init__(self):
+        super().__init__()
+        self.path = "SavedModels/test2_smaller"
+        self.encoder_shape = [8,8,8]
+        self.decoder_shape = [8,8,8]
+    
+class Test2_larger(Test2):
+    def __init__(self):
+        super().__init__()
+        self.path = "SavedModels/test2_larger"
+        self.encoder_shape = [8,16,32,32,16,8]
+        self.decoder_shape = [8,16,32,32,16,8]
+        
+class Test2_larger_latent(Test2):
+    def __init__(self):
+        super().__init__()
+        self.path = "SavedModels/test2_larger_latent"
+        self.encoder_shape = [8,16,16,16]
+        self.decoder_shape = [16,16,16,8]
+    
+#----------------------------------------------
+
+    
 class Test_shift_over_time_1():
     def __init__(self):
         
         self.path = "SavedModels/time1"
-        self.encoder_shape = [9,16,16,8]
-        self.decoder_shape = [9,16,16,8]
+        self.encoder_shape = [9,16,16,9]
+        self.decoder_shape = [9,16,16,9]
         
         self.shift = [0,0,0,0,0,0,0,1]
         N = 100000
